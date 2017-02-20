@@ -1,0 +1,14 @@
+## Editor generated
+01_Combat.sln
+01_Combat.userprefs
+Assembly-CSharp.csproj
+
+## Mac generated
+*.DS_Store
+
+## Unity generated
+Library/
+Temp/
+ProjectSettings/
+*.meta
+
