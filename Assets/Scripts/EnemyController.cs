@@ -24,7 +24,7 @@ public class EnemyController : MonoBehaviour {
 		speed = Random.Range (0.8f, 1.2f);
 		speed += game.GetDifficultyLevel () * base_speed;
 		destory_delay = 1f;
-		dead_destroy_delay = 1f;
+		dead_destroy_delay = 0.6f;
 		is_missed = false;
 
 		// animation

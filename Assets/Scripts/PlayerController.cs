@@ -227,13 +227,13 @@ public class PlayerController : MonoBehaviour {
 			{
 				up_speed = 0;
 			}
-			right_speed = 0.3f;
+			right_speed = 0.8f;
 			transform.position += Vector3.up * Time.deltaTime * up_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
 		else if (!is_up && !is_on_ground)
 		{
 			down_speed += gravity * Time.deltaTime;
-			right_speed = 0.3f;
+			right_speed = 0.8f;
 			transform.position += Vector3.down * Time.deltaTime * down_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
 
@@ -241,7 +241,7 @@ public class PlayerController : MonoBehaviour {
 		{
 			down_speed = 0;
 			up_speed = max_up_speed;
-			right_speed = -0.35f;
+			right_speed = -0.3f;
 			transform.position += Vector3.right * Time.deltaTime * right_speed;
 		}
 
