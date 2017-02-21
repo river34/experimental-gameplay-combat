@@ -80,7 +80,7 @@ public class GameController : MonoBehaviour {
 	public GameObject UI_option;
 
 	// difficulty level
-	private int difficulty_level;
+	public int difficulty_level;
 
 	// Use this for initialization
 	void Start () {
@@ -245,6 +245,10 @@ public class GameController : MonoBehaviour {
 	{
 		if (!is_end)
 		{
+			if (Input.GetKey ("0"))
+			{
+				difficulty_level = 0;
+			}
 			if (Input.GetKey ("1"))
 			{
 				difficulty_level = 1;

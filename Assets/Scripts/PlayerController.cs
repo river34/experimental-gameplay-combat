@@ -241,7 +241,7 @@ public class PlayerController : MonoBehaviour {
 		{
 			down_speed = 0;
 			up_speed = max_up_speed;
-			right_speed = -0.3f;
+			right_speed = -0.5f;
 			transform.position += Vector3.right * Time.deltaTime * right_speed;
 		}
 
