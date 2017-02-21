@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour {
 
 	// player
-	private PlayerController player;
+	private PlayerController player1;
+	private PlayerController player2;
 
 	// enemy
 	public List <GameObject> enemycards;
@@ -23,10 +24,12 @@ public class GameController : MonoBehaviour {
 	// game control
 	private GameObject hidden;
 	private float title_time;
-	private float tutorial_time;
 	private bool is_title_finished;
+	private float option_time;
+	private bool is_option_finished;
 	private float game_start_time;
 	public bool is_end;
+	public bool is_multiplayer;
 
 	// curtain
 	private Transform curtain;
@@ -43,6 +46,7 @@ public class GameController : MonoBehaviour {
 	private float original_lifetime;
 
 	// tutorial
+	private bool is_tutorial_set;
 	private bool is_tutorial_finished;
 	private Transform tutorial;
 	private List <Transform> tutorial_texts;
@@ -54,9 +58,13 @@ public class GameController : MonoBehaviour {
 	private float tutorial_close_speed;
 	private bool skip_tutorial;
 	private float color_speed;
+	private string[] tutorial_strings;
+	public GameObject tutorial_text;
 
 	// game statistics
 	private int kills;
+	private int kills_0;
+	private int kills_1;
 	private int misses;
 	private float distance;
 	private int max_misses;
@@ -65,8 +73,11 @@ public class GameController : MonoBehaviour {
 
 	// UI
 	public GameObject UI_kill;
+	public GameObject UI_kill_0;
+	public GameObject UI_kill_1;
 	public GameObject UI_highest;
 	public GameObject UI_title;
+	public GameObject UI_option;
 
 	// difficulty level
 	private int difficulty_level;
@@ -82,9 +93,10 @@ public class GameController : MonoBehaviour {
 		enemycard_destory_delay = 20f;
 
 		// game control
-		tutorial_time = 10f;
-		title_time = 2f;
+		title_time = 3f;
 		is_title_finished = false;
+		option_time = 3f;
+		is_option_finished = false;
 		game_start_time = Time.time;
 		hidden = transform.Find ("Hidden").gameObject;
 		if (hidden.activeSelf)
@@ -92,6 +104,7 @@ public class GameController : MonoBehaviour {
 			hidden.SetActive (false);
 		}
 		is_end = false;
+		is_multiplayer = false;
 
 		// curtain
 		curtain = transform.Find ("Curtain");
@@ -110,6 +123,8 @@ public class GameController : MonoBehaviour {
 
 		// game statistics
 		kills = 0;
+		kills_0 = 0;
+		kills_1 = 0;
 		misses = 0;
 		max_misses = 50;
 		distance = 0;
@@ -118,6 +133,7 @@ public class GameController : MonoBehaviour {
 
 		// tutorials
 		skip_tutorial = false;
+		is_tutorial_set = false;
 		is_tutorial_finished = false;
 		tutorial_speed = 6f;
 		tutorial_text_start_position_x = 6f;
@@ -128,19 +144,25 @@ public class GameController : MonoBehaviour {
 		color_speed = 0.3f;
 		tutorial = transform.Find ("Tutorial");
 		tutorial_texts = new List <Transform> ();
+
+		/*
 		foreach (Transform child in tutorial)
 		{
 			tutorial_texts.Add (child);
 			child.position += Vector3.right * tutorial_text_start_position_x;
 			child.gameObject.GetComponent <TextMesh> ().color = new Color (1f, 1f, 1f, 0);
 		}
+		*/
 
 		// player controller
-		player = transform.Find ("Player").gameObject.GetComponent <PlayerController> ();
+		player1 = transform.Find ("Player_0").gameObject.GetComponent <PlayerController> ();
+		player2 = transform.Find ("Player_1").gameObject.GetComponent <PlayerController> ();
+		player2.gameObject.SetActive (false);
 
 		// UI
 		HideUI ();
 		HideHighest ();
+		HideOption ();
 
 		// difficulty level
 		difficulty_level = 0;
@@ -148,9 +170,40 @@ public class GameController : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		CheckControls ();
+		if (!is_end && is_title_finished && !is_option_finished)
+		{
+			if (Input.GetKey ("1"))
+			{
+				is_multiplayer = false;
+				is_option_finished = true;
+				HideOption ();
+			}
+			else if (Input.GetKey ("2"))
+			{
+				is_multiplayer = true;
+				player2.gameObject.SetActive (true);
+				player1.ResetControlForMultiplayer ();
+				player2.ResetControlForMultiplayer ();
+				is_option_finished = true;
+				HideOption ();
+			}
+		}
 
-		if (!is_end && is_title_finished)
+		if (!is_end && is_title_finished && is_option_finished && !is_tutorial_set)
+		{
+			is_tutorial_set = true;
+			SetTutorial ();
+		}
+
+		if (!is_end && is_title_finished && is_option_finished && is_tutorial_set && !is_tutorial_finished)
+		{
+			if (Input.GetKey ("space"))
+			{
+				skip_tutorial = true;
+			}
+		}
+
+		if (!is_end && is_title_finished && is_option_finished)
 		{
 			if (curtain.position.y < curtain_highest_position_y)
 			{
@@ -160,19 +213,13 @@ public class GameController : MonoBehaviour {
 			{
 				curtain.position = new Vector3 (curtain.position.x, curtain_highest_position_y, curtain.position.z);
 			}
-			else
-			{
-				UpdateUI ();
-			}
+			CheckControls ();
 			UpdateTutorial ();
 			UpdateStatue ();
 			UpdateEnemies ();
 		}
-		else // is_end
+		else if (is_end && is_title_finished && is_option_finished) // is_end
 		{
-			// update highest score
-			highest = Mathf.Max (highest, kills);
-
 			if (curtain.position.y > curtain_lowest_position_y)
 			{
 				curtain.position += Vector3.down * Time.deltaTime * curtain_speed;
@@ -184,28 +231,20 @@ public class GameController : MonoBehaviour {
 
 			if (curtain.position.y == curtain_lowest_position_y)
 			{
-				UpdateUI ();
-
 				if (Input.anyKey)
 				{
-					if (is_title_finished)
-					{
-						print ("anyKey");
-						Init ();  // restart game
-					}
+					print ("anyKey");
+					Init ();  // restart game
 				}
 			}
 		}
+		UpdateUI ();
 	}
 
 	void CheckControls ()
 	{
 		if (!is_end)
 		{
-			if (Input.GetKey ("space"))
-			{
-				skip_tutorial = true;
-			}
 			if (Input.GetKey ("1"))
 			{
 				difficulty_level = 1;
@@ -302,6 +341,8 @@ public class GameController : MonoBehaviour {
 		danger_particle = danger.GetComponent <ParticleSystem> ();
 		original_lifetime = danger_particle.startLifetime;
 		kills = 0;
+		kills_0 = 0;
+		kills_1 = 0;
 		misses = 0;
 		distance = 0;
 
@@ -311,7 +352,12 @@ public class GameController : MonoBehaviour {
 			Destroy (enemy);
 		}
 
-		player.Init ();
+		UI_kill.GetComponent <Text> ().text = "Kills: " + kills;
+		UI_kill_0.GetComponent <Text> ().text = "Fluffy: " + kills;
+		UI_kill_1.GetComponent <Text> ().text = "Feathery: " + kills;
+
+		player1.Init ();
+		player2.Init ();
 	}
 
 	public void End ()
@@ -322,7 +368,22 @@ public class GameController : MonoBehaviour {
 	public void AddKills ()
 	{
 		kills ++;
-		UpdateUI ();
+		UI_kill.GetComponent <Text> ().text = "Kills: " + kills;
+		// update highest score
+		highest = Mathf.Max (highest, kills);
+		UI_highest.GetComponent <Text> ().text = "Highest: " + highest;
+	}
+
+	public void AddKills0 ()
+	{
+		kills_0 ++;
+		UI_kill_0.GetComponent <Text> ().text = "Fluffy: " + kills_0;
+	}
+
+	public void AddKills1 ()
+	{
+		kills_1 ++;
+		UI_kill_1.GetComponent <Text> ().text = "Feathery: " + kills_1;
 	}
 
 	public void AddMisses ()
@@ -390,18 +451,26 @@ public class GameController : MonoBehaviour {
 			HideTitle ();
 		}
 
+		if (is_title_finished && !is_option_finished && Time.time - game_start_time - title_time < option_time)
+		{
+			ShowOption ();
+		}
+		else if (is_title_finished && !is_option_finished)
+		{
+			is_option_finished = true;
+			HideOption ();
+		}
+
 		if (!is_end && is_tutorial_finished)
 		{
 			ShowUI ();
 			HideHighest ();
-			UI_kill.GetComponent <Text> ().text = "Kills: " + kills;
 		}
 
 		if (is_end)
 		{
 			HideUI ();
 			ShowHighest ();
-			UI_highest.GetComponent <Text> ().text = "Highest: " + highest;
 		}
 	}
 
@@ -411,6 +480,17 @@ public class GameController : MonoBehaviour {
 		{
 			UI_kill.SetActive (false);
 		}
+		if (is_multiplayer)
+		{
+			if (UI_kill_0.activeSelf)
+			{
+				UI_kill_0.SetActive (false);
+			}
+			if (UI_kill_1.activeSelf)
+			{
+				UI_kill_1.SetActive (false);
+			}
+		}
 	}
 
 	void ShowUI ()
@@ -418,6 +498,17 @@ public class GameController : MonoBehaviour {
 		if (!UI_kill.activeSelf)
 		{
 			UI_kill.SetActive (true);
+		}
+		if (is_multiplayer)
+		{
+			if (!UI_kill_0.activeSelf)
+			{
+				UI_kill_0.SetActive (true);
+			}
+			if (!UI_kill_1.activeSelf)
+			{
+				UI_kill_1.SetActive (true);
+			}
 		}
 	}
 
@@ -453,8 +544,57 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	void HideOption ()
+	{
+		if (UI_option.activeSelf)
+		{
+			UI_option.SetActive (false);
+		}
+	}
+
+	void ShowOption ()
+	{
+		if (!UI_option.activeSelf)
+		{
+			UI_option.SetActive (true);
+		}
+	}
+
 	public int GetDifficultyLevel ()
 	{
 		return difficulty_level;
+	}
+
+	void SetTutorial ()
+	{
+		if (is_multiplayer)
+		{
+			tutorial_strings = new string[7];
+			tutorial_strings[0] = "Once upon a time, there live Fluffy and Feathery";
+			tutorial_strings[1] = "They love to roll around and never get tired";
+			tutorial_strings[2] = "Use WASD to control Fluffy";
+			tutorial_strings[3] = "Use Arrows to control Feathery";
+			tutorial_strings[4] = "Press W or Up to jump";
+			tutorial_strings[5] = "Press D or Right to turn into a saw";
+			tutorial_strings[6] = "One day, there come the Evil Spirits ...";
+		}
+		else
+		{
+			tutorial_strings = new string[5];
+			tutorial_strings[0] = "Once upon a time, there lives Fluffy";
+			tutorial_strings[1] = "It loves to roll around and never gets tired";
+			tutorial_strings[2] = "Press W or Up to jump";
+			tutorial_strings[3] = "Press D or Right to turn into a saw";
+			tutorial_strings[4] = "One day, there come the Evil Spirits ...";
+		}
+
+		foreach (string tutorial_string in tutorial_strings)
+		{
+			GameObject new_tutorial_text = Instantiate (tutorial_text, tutorial);
+			tutorial_texts.Add (new_tutorial_text.transform);
+			new_tutorial_text.transform.position += Vector3.right * tutorial_text_start_position_x;
+			new_tutorial_text.GetComponent <TextMesh> ().color = new Color (1f, 1f, 1f, 0);
+			new_tutorial_text.GetComponent <TextMesh> ().text = tutorial_string;
+		}
 	}
 }

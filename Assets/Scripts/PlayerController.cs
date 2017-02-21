@@ -45,11 +45,15 @@ public class PlayerController : MonoBehaviour {
 	// game controller
 	private GameController game;
 	private bool is_notified;
+	public bool is_wasd;
+	public bool is_arrows;
 
 	// Use this for initialization
 	void Start () {
 		// game controller
 		game = GameObject.Find ("Root").GetComponent <GameController> ();
+		is_wasd = true;
+		is_arrows = true;
 
 		// position
 		is_up = false;
@@ -107,34 +111,67 @@ public class PlayerController : MonoBehaviour {
 
 	void CheckControls ()
 	{
-		if (Input.GetKey ("up") || Input.GetKey ("w"))
+		if (is_wasd)
 		{
-			// print ("up arrow key is held down");
-			is_up = true;
-		}
-		else
-		{
-			is_up = false;
+			if (Input.GetKey ("w"))
+			{
+				is_up = true;
+			}
+			else
+			{
+				is_up = false;
+			}
+
+			if (Input.GetKey ("d"))
+			{
+				is_attacking = true;
+			}
+			else
+			{
+				is_attacking = false;
+			}
 		}
 
-		if (Input.GetKey ("down") || Input.GetKey ("s"))
+		if (is_arrows)
 		{
-			// print ("down arrow key is held down");
+			if (Input.GetKey ("up"))
+			{
+				is_up = true;
+			}
+			else
+			{
+				is_up = false;
+			}
+
+			if (Input.GetKey ("right"))
+			{
+				is_attacking = true;
+			}
+			else
+			{
+				is_attacking = false;
+			}
 		}
 
-		if (Input.GetKey ("left") || Input.GetKey ("a"))
+		if (is_wasd && is_arrows)
 		{
-			// print ("left arrow key is held down");
-		}
+			if (Input.GetKey ("w") || Input.GetKey ("up"))
+			{
+				is_up = true;
+			}
+			else
+			{
+				is_up = false;
+			}
 
-		if (Input.GetKey ("right") || Input.GetKey ("d"))
-		{
-			// print ("right arrow key is held down");
-			is_attacking = true;
-		}
-		else
-		{
-			is_attacking = false;
+			if (Input.GetKey ("d") || Input.GetKey ("right"))
+			{
+				is_attacking = true;
+			}
+			else
+			{
+				is_attacking = false;
+			}
 		}
 	}
 
@@ -190,13 +227,13 @@ public class PlayerController : MonoBehaviour {
 			{
 				up_speed = 0;
 			}
-			right_speed = 0.4f;
+			right_speed = 0.3f;
 			transform.position += Vector3.up * Time.deltaTime * up_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
 		else if (!is_up && !is_on_ground)
 		{
 			down_speed += gravity * Time.deltaTime;
-			right_speed = 0.4f;
+			right_speed = 0.3f;
 			transform.position += Vector3.down * Time.deltaTime * down_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
 
@@ -204,7 +241,7 @@ public class PlayerController : MonoBehaviour {
 		{
 			down_speed = 0;
 			up_speed = max_up_speed;
-			right_speed = -0.8f;
+			right_speed = -0.35f;
 			transform.position += Vector3.right * Time.deltaTime * right_speed;
 		}
 
@@ -376,6 +413,14 @@ public class PlayerController : MonoBehaviour {
 			{
 				other.gameObject.tag = "Finish";
 				other.gameObject.GetComponent <EnemyController> ().KilledByPlayer ();
+				if (gameObject.name == "Player_0")
+				{
+					game.AddKills0 ();
+				}
+				else if (gameObject.name == "Player_1")
+				{
+					game.AddKills1 ();
+				}
 			}
 			else
 			{
@@ -400,5 +445,19 @@ public class PlayerController : MonoBehaviour {
 		position_y_last_frame = transform.position.y;
 		attack_timer.gameObject.SetActive (true);
 		cd_timer.gameObject.SetActive (true);
+	}
+
+	public void ResetControlForMultiplayer ()
+	{
+		if (gameObject.name == "Player_0")
+		{
+			is_wasd = true;
+			is_arrows = false;
+		}
+		else
+		{
+			is_wasd = false;
+			is_arrows = true;
+		}
 	}
 }
