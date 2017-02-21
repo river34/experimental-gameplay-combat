@@ -480,17 +480,6 @@ public class GameController : MonoBehaviour {
 		{
 			UI_kill.SetActive (false);
 		}
-		if (is_multiplayer)
-		{
-			if (UI_kill_0.activeSelf)
-			{
-				UI_kill_0.SetActive (false);
-			}
-			if (UI_kill_1.activeSelf)
-			{
-				UI_kill_1.SetActive (false);
-			}
-		}
 	}
 
 	void ShowUI ()
@@ -508,6 +497,17 @@ public class GameController : MonoBehaviour {
 			if (!UI_kill_1.activeSelf)
 			{
 				UI_kill_1.SetActive (true);
+			}
+		}
+		else
+		{
+			if (UI_kill_0.activeSelf)
+			{
+				UI_kill_0.SetActive (false);
+			}
+			if (UI_kill_1.activeSelf)
+			{
+				UI_kill_1.SetActive (false);
 			}
 		}
 	}
