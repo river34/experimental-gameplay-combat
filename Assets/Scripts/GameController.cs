@@ -172,18 +172,18 @@ public class GameController : MonoBehaviour {
 	void Update () {
 		if (!is_end && is_title_finished && !is_option_finished)
 		{
-			if (Input.GetKey ("1"))
+			if (Input.GetKey ("s"))
 			{
 				is_multiplayer = false;
 				is_option_finished = true;
 				HideOption ();
 			}
-			else if (Input.GetKey ("2"))
+			else if (Input.GetKey ("down"))
 			{
 				is_multiplayer = true;
+				player1.SetControl (true, false);
+				player2.SetControl (false, true);
 				player2.gameObject.SetActive (true);
-				player1.ResetControlForMultiplayer ();
-				player2.ResetControlForMultiplayer ();
 				is_option_finished = true;
 				HideOption ();
 			}

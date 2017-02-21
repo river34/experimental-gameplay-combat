@@ -34,10 +34,10 @@ public class PlayerController : MonoBehaviour {
 	private float timer_position_offset;
 
 	// cd time
-	private float attack_time_limit;
+	public float attack_time_limit;
 	private float attack_start_time;
 	private float attack_time;
-	private float cd_time_limit;
+	public float cd_time_limit;
 	private float cd_start_time;
 	private float cd_time;
 	private bool is_attacking_triggered;
@@ -447,17 +447,9 @@ public class PlayerController : MonoBehaviour {
 		cd_timer.gameObject.SetActive (true);
 	}
 
-	public void ResetControlForMultiplayer ()
+	public void SetControl (bool _is_wasd, bool _is_arrows)
 	{
-		if (gameObject.name == "Player_0")
-		{
-			is_wasd = true;
-			is_arrows = false;
-		}
-		else
-		{
-			is_wasd = false;
-			is_arrows = true;
-		}
+		is_wasd = _is_wasd;
+		is_arrows = _is_arrows;
 	}
 }
