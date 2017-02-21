@@ -1,9 +1,9 @@
 # Fluffy Combat
 
 
-![](/Assets/Screenshots/Screen Shot 02.png | width=625)
+<img src="/Assets/Screenshots/Screen Shot 02.png" width="625">
 
-![](/Assets/Screenshots/Screen Shot 01.png | width=625)
+<img src="/Assets/Screenshots/Screen Shot 01.png" width="625">
 
 
 ### Play now from my website: [WebGL](https://river34.github.io/experimental-gameplay-combat/webgl/index.html)
