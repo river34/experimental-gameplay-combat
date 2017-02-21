@@ -1,9 +1,9 @@
 # Fluffy Combat
 
 
-![Alt text](/Assets/Textures/Screen Shot 02.png?raw=true "Fluffy Combat")
+![Alt text](/Assets/Screenshots/Screen Shot 02.png "Screen Shot 1")
 
-![Alt text](/Assets/Textures/Screen Shot 01.png?raw=true "Screen Shot")
+![Alt text](/Assets/Screenshots/Screen Shot 01.png "Screen Shot 2")
 
 
 ### Play now from my website: [WebGL](https://river34.github.io/experimental-gameplay-combat/webgl/index.html)
