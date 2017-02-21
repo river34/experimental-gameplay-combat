@@ -22,7 +22,9 @@ public class GameController : MonoBehaviour {
 
 	// game control
 	private GameObject hidden;
+	private float title_time;
 	private float tutorial_time;
+	private bool is_title_finished;
 	private float game_start_time;
 	public bool is_end;
 
@@ -50,12 +52,8 @@ public class GameController : MonoBehaviour {
 	private float tutorial_close_x_start;
 	private float tutorial_close_x_end;
 	private float tutorial_close_speed;
-	public bool skip_tutorial;
+	private bool skip_tutorial;
 	private float color_speed;
-
-	// credits
-	private bool is_credits_finished;
-	public bool skip_credits;
 
 	// game statistics
 	private int kills;
@@ -63,9 +61,15 @@ public class GameController : MonoBehaviour {
 	private float distance;
 	private int max_misses;
 	private float distance_speed;
+	private int highest;
 
 	// UI
 	public GameObject UI_kill;
+	public GameObject UI_highest;
+	public GameObject UI_title;
+
+	// difficulty level
+	private int difficulty_level;
 
 	// Use this for initialization
 	void Start () {
@@ -75,10 +79,12 @@ public class GameController : MonoBehaviour {
 		is_enemy_start = false;
 		enemycard_renew_time = 8f;
 		enemycard_start_time = Time.time;
-		enemycard_destory_delay = 8f;
+		enemycard_destory_delay = 20f;
 
 		// game control
 		tutorial_time = 10f;
+		title_time = 2f;
+		is_title_finished = false;
 		game_start_time = Time.time;
 		hidden = transform.Find ("Hidden").gameObject;
 		if (hidden.activeSelf)
@@ -96,7 +102,7 @@ public class GameController : MonoBehaviour {
 		// danger
 		danger = transform.Find ("Danger");
 		danger_speed = 1f;
-		danger_original_position_x = -10f;
+		danger_original_position_x = -5f;
 		danger_final_position_x = -3.5f;
 		danger.position = new Vector3 (danger_original_position_x, danger.position.y, danger.position.z);
 		danger_particle = danger.GetComponent <ParticleSystem> ();
@@ -105,9 +111,10 @@ public class GameController : MonoBehaviour {
 		// game statistics
 		kills = 0;
 		misses = 0;
-		max_misses = 100;
+		max_misses = 50;
 		distance = 0;
 		distance_speed = 2f;
+		highest = 0;
 
 		// tutorials
 		skip_tutorial = false;
@@ -133,52 +140,98 @@ public class GameController : MonoBehaviour {
 
 		// UI
 		HideUI ();
+		HideHighest ();
+
+		// difficulty level
+		difficulty_level = 0;
 	}
 
 	// Update is called once per frame
 	void Update () {
-		if (!is_end)
+		CheckControls ();
+
+		if (!is_end && is_title_finished)
 		{
 			if (curtain.position.y < curtain_highest_position_y)
 			{
 				curtain.position += Vector3.up * Time.deltaTime * curtain_speed;
 			}
-			else if (curtain.position.y != curtain_highest_position_y)
+			else if (curtain.position.y > curtain_highest_position_y)
 			{
 				curtain.position = new Vector3 (curtain.position.x, curtain_highest_position_y, curtain.position.z);
 			}
-			UpdateCredits ();
+			else
+			{
+				UpdateUI ();
+			}
 			UpdateTutorial ();
 			UpdateStatue ();
 			UpdateEnemies ();
-			UpdateUI ();
 		}
-		else
+		else // is_end
 		{
+			// update highest score
+			highest = Mathf.Max (highest, kills);
+
 			if (curtain.position.y > curtain_lowest_position_y)
 			{
 				curtain.position += Vector3.down * Time.deltaTime * curtain_speed;
 			}
-			else if (curtain.position.y != curtain_lowest_position_y)
+			else if (curtain.position.y < curtain_lowest_position_y)
 			{
 				curtain.position = new Vector3 (curtain.position.x, curtain_lowest_position_y, curtain.position.z);
 			}
-			else
+
+			if (curtain.position.y == curtain_lowest_position_y)
 			{
+				UpdateUI ();
+
 				if (Input.anyKey)
 				{
-					// restart game
-					print ("anyKey");
-					Init ();
+					if (is_title_finished)
+					{
+						print ("anyKey");
+						Init ();  // restart game
+					}
 				}
 			}
-			HideUI ();
+		}
+	}
+
+	void CheckControls ()
+	{
+		if (!is_end)
+		{
+			if (Input.GetKey ("space"))
+			{
+				skip_tutorial = true;
+			}
+			if (Input.GetKey ("1"))
+			{
+				difficulty_level = 1;
+			}
+			if (Input.GetKey ("2"))
+			{
+				difficulty_level = 2;
+			}
+			if (Input.GetKey ("3"))
+			{
+				difficulty_level = 3;
+			}
+			if (Input.GetKey ("4"))
+			{
+				difficulty_level = 4;
+			}
+			if (Input.GetKey ("5"))
+			{
+				difficulty_level = 5;
+			}
 		}
 	}
 
 	void UpdateStatue ()
 	{
-		if (!is_enemy_start && Time.time - game_start_time > tutorial_time && is_tutorial_finished)
+		if (!is_enemy_start && is_tutorial_finished)
 		{
 			is_enemy_start = true;
 		}
@@ -196,7 +249,7 @@ public class GameController : MonoBehaviour {
 
 		if (danger.position.x != danger_final_position_x)
 		{
-			danger_particle.startLifetime = original_lifetime + Mathf.Round (misses / 10);
+			danger_particle.startLifetime = original_lifetime + Mathf.Round (misses / 5);
 		}
 
 		if (misses > max_misses)
@@ -251,6 +304,13 @@ public class GameController : MonoBehaviour {
 		kills = 0;
 		misses = 0;
 		distance = 0;
+
+		GameObject[] all_enemies = GameObject.FindGameObjectsWithTag (Tags.ENEMY);
+		foreach (GameObject enemy in all_enemies)
+		{
+			Destroy (enemy);
+		}
+
 		player.Init ();
 	}
 
@@ -270,14 +330,9 @@ public class GameController : MonoBehaviour {
 		misses ++;
 	}
 
-	void UpdateCredits ()
-	{
-
-	}
-
 	void UpdateTutorial ()
 	{
-		if (!is_end && !is_tutorial_finished && !skip_tutorial)
+		if (!is_end && !is_tutorial_finished && !skip_tutorial && is_title_finished)
 		{
 			if (tutorial_texts.Count > 0)
 			{
@@ -325,10 +380,28 @@ public class GameController : MonoBehaviour {
 
 	public void UpdateUI ()
 	{
+		if (!is_title_finished && Time.time - game_start_time < title_time)
+		{
+			ShowTitle ();
+		}
+		else if (!is_title_finished)
+		{
+			is_title_finished = true;
+			HideTitle ();
+		}
+
 		if (!is_end && is_tutorial_finished)
 		{
 			ShowUI ();
+			HideHighest ();
 			UI_kill.GetComponent <Text> ().text = "Kills: " + kills;
+		}
+
+		if (is_end)
+		{
+			HideUI ();
+			ShowHighest ();
+			UI_highest.GetComponent <Text> ().text = "Highest: " + highest;
 		}
 	}
 
@@ -346,5 +419,42 @@ public class GameController : MonoBehaviour {
 		{
 			UI_kill.SetActive (true);
 		}
+	}
+
+	void HideHighest ()
+	{
+		if (UI_highest.activeSelf)
+		{
+			UI_highest.SetActive (false);
+		}
+	}
+
+	void ShowHighest ()
+	{
+		if (!UI_highest.activeSelf)
+		{
+			UI_highest.SetActive (true);
+		}
+	}
+
+	void HideTitle ()
+	{
+		if (UI_title.activeSelf)
+		{
+			UI_title.SetActive (false);
+		}
+	}
+
+	void ShowTitle ()
+	{
+		if (!UI_title.activeSelf)
+		{
+			UI_title.SetActive (true);
+		}
+	}
+
+	public int GetDifficultyLevel ()
+	{
+		return difficulty_level;
 	}
 }

@@ -12,12 +12,14 @@ public class PlayerController : MonoBehaviour {
 	private bool is_going_down;
 	private float position_y;
 	private float position_y_last_frame;
-	private float max_up_speed = 8f;
-	private float up_speed = 0f;
-	private float up_force = 1.5f * 2;
-	private float down_speed = 0f;
-	private float gravity = 0.98f * 2;
-	private Vector3 initial_position = new Vector3 (-2f, 1.2f, -2f);
+	public float up_speed;
+	private float max_up_speed;
+	public float down_speed;
+	private float gravity;
+	public float right_speed;
+	private float max_y;
+	private float min_x;
+	private Vector3 initial_position;
 
 	// animation
 	private bool is_attacking;
@@ -25,12 +27,11 @@ public class PlayerController : MonoBehaviour {
 	private bool is_killed;
 	private bool is_dead;
 	private Animator animator;
-	// private Animator timer_animator;
 	public Transform attack_timer;
 	public GameObject attack_count_down;
 	public Transform cd_timer;
 	public GameObject cd_count_down;
-	public float timer_position_offset;
+	private float timer_position_offset;
 
 	// cd time
 	private float attack_time_limit;
@@ -47,12 +48,23 @@ public class PlayerController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// game controller
+		game = GameObject.Find ("Root").GetComponent <GameController> ();
+
 		// position
 		is_up = false;
 		is_up_last_frame = false;
 		is_on_ground = false;
 		is_in_sky = false;
 		is_going_down = false;
+		max_up_speed = 10f;
+		up_speed = 0f;
+		down_speed = 0f;
+		gravity = 16f;
+		right_speed = 0f;
+		max_y = 1.2f;
+		min_x = -2f;
+		initial_position = new Vector3 (min_x, max_y, -2f);
 		transform.position = initial_position;
 		position_y = transform.position.y;
 		position_y_last_frame = transform.position.y;
@@ -64,20 +76,17 @@ public class PlayerController : MonoBehaviour {
 		is_killed = false;
 		is_dead = false;
 		animator = GetComponent <Animator> ();
-		// timer_animator = transform.Find ("Timer").gameObject.GetComponent <Animator> ();
 		timer_position_offset = 0.4f;
 
 		// cd time
-		attack_time_limit = 3f;
+		attack_time_limit = 3f + Mathf.Min (5 - game.GetDifficultyLevel (), 0);
 		attack_start_time = Time.time;
 		attack_time = Time.time;
-		cd_time_limit = 3f;
+		cd_time_limit = 1f + Mathf.Min (game.GetDifficultyLevel (), 2);
 		cd_start_time = Time.time;
 		cd_time = Time.time;
 		is_attacking_triggered = false;
 
-		// game controller
-		game = GameObject.Find ("Root").GetComponent <GameController> ();
 		is_notified = false;
 	}
 
@@ -174,31 +183,29 @@ public class PlayerController : MonoBehaviour {
 
 	void UpdateMovement ()
 	{
-		if (is_up_last_frame)
+		if (is_up && !is_in_sky)
 		{
-			if (up_speed > 0)
-			{
-				up_speed -= (up_force - gravity) * Time.deltaTime;
-			}
-			else
+			up_speed -= gravity * Time.deltaTime;
+			if (up_speed < 0)
 			{
 				up_speed = 0;
 			}
-
-			transform.position += Vector3.up * Time.deltaTime * Mathf.Max (up_speed - down_speed, 0);
+			right_speed = 0.4f;
+			transform.position += Vector3.up * Time.deltaTime * up_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
-		else if (!is_on_ground)
+		else if (!is_up && !is_on_ground)
 		{
 			down_speed += gravity * Time.deltaTime;
-			transform.position += Vector3.down * Time.deltaTime * down_speed;
+			right_speed = 0.4f;
+			transform.position += Vector3.down * Time.deltaTime * down_speed + Vector3.right * Time.deltaTime * right_speed;
 		}
-		if (is_on_ground)
+
+		if (is_on_ground || is_in_sky)
 		{
-			down_speed = 0f;
-		}
-		else if (is_in_sky)
-		{
+			down_speed = 0;
 			up_speed = max_up_speed;
+			right_speed = -0.8f;
+			transform.position += Vector3.right * Time.deltaTime * right_speed;
 		}
 
 		attack_timer.position = transform.position + Vector3.up * timer_position_offset;
@@ -316,6 +323,7 @@ public class PlayerController : MonoBehaviour {
 
 		if (is_killed && !is_dead)
 		{
+			animator.ResetTrigger ("Revived");
 			animator.SetTrigger ("Killed");
 			is_dead = true;
 			attack_timer.gameObject.SetActive (false);

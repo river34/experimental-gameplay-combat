@@ -5,6 +5,7 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour {
 
 	private float left_boundary;
+	private float base_speed;
 	private float speed;
 	private float destory_delay;
 	private float dead_destroy_delay;
@@ -15,18 +16,20 @@ public class EnemyController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// game controller
+		game = GameObject.Find ("Root").GetComponent <GameController> ();
+
 		left_boundary = -4f;
+		base_speed = 0.2f;
 		speed = Random.Range (0.8f, 1.2f);
+		speed += game.GetDifficultyLevel () * base_speed;
 		destory_delay = 1f;
-		dead_destroy_delay = 1.5f;
+		dead_destroy_delay = 1f;
 		is_missed = false;
 
 		// animation
 		animator = GetComponent <Animator> ();
 		is_dead = false;
-
-		// game controller
-		game = GameObject.Find ("Root").GetComponent <GameController> ();
 	}
 
 	// Update is called once per frame
@@ -48,20 +51,6 @@ public class EnemyController : MonoBehaviour {
 			}
 		}
 	}
-
-	/*
-	void OnTriggerEnter2D (Collider2D other)
-	{
-		if (other.gameObject.name == "Player")
-		{
-			if (other.gameObject.GetComponent <PlayerController> ().GetAttacking ())
-			{
-				Destroy (gameObject);
-				print ("Destroy");
-			}
-		}
-	}
-	*/
 
 	public void KilledByPlayer ()
 	{
