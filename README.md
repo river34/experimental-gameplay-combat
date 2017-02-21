@@ -1,9 +1,9 @@
 # Fluffy Combat
 
 
-![Alt text](/Assets/Screenshots/Screen Shot 02.png "Screen Shot 1")
+![Alt text](/Assets/Screenshots/Screen Shot 02.png =625x "Screen Shot 1")
 
-![Alt text](/Assets/Screenshots/Screen Shot 01.png "Screen Shot 2")
+![Alt text](/Assets/Screenshots/Screen Shot 01.png =625x "Screen Shot 2")
 
 
 ### Play now from my website: [WebGL](https://river34.github.io/experimental-gameplay-combat/webgl/index.html)
