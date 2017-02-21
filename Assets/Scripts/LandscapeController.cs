@@ -5,7 +5,7 @@ using UnityEngine;
 public class LandscapeController : MonoBehaviour {
 
 	public List <Transform> landscapes;
-	public float base_speed = 0.1f;
+	private float base_speed = 0.1f;
 	private float start_x = 2.45f;
 	private float end_x = -9.55f;
 	private float length_x = 12f;

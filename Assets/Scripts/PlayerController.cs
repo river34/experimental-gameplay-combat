@@ -20,24 +20,30 @@ public class PlayerController : MonoBehaviour {
 	private Vector3 initial_position = new Vector3 (-2f, 1.2f, -2f);
 
 	// animation
-	public bool is_attacking;
-	public bool is_attacking_last_frame;
+	private bool is_attacking;
+	private bool is_attacking_last_frame;
 	private bool is_killed;
 	private bool is_dead;
 	private Animator animator;
+	// private Animator timer_animator;
+	public Transform attack_timer;
+	public GameObject attack_count_down;
+	public Transform cd_timer;
+	public GameObject cd_count_down;
+	public float timer_position_offset;
 
 	// cd time
 	private float attack_time_limit;
 	private float attack_start_time;
-	public float attack_time;
-	private float attack_cd_time_limit;
-	private float attack_cd_start_time;
-	public float attack_cd_time;
+	private float attack_time;
+	private float cd_time_limit;
+	private float cd_start_time;
+	private float cd_time;
 	private bool is_attacking_triggered;
 
 	// game controller
-	public GameController game;
-	public bool is_notified;
+	private GameController game;
+	private bool is_notified;
 
 	// Use this for initialization
 	void Start () {
@@ -58,17 +64,20 @@ public class PlayerController : MonoBehaviour {
 		is_killed = false;
 		is_dead = false;
 		animator = GetComponent <Animator> ();
+		// timer_animator = transform.Find ("Timer").gameObject.GetComponent <Animator> ();
+		timer_position_offset = 0.4f;
 
 		// cd time
 		attack_time_limit = 3f;
 		attack_start_time = Time.time;
 		attack_time = Time.time;
-		attack_cd_time_limit = 3f;
-		attack_cd_start_time = Time.time;
-		attack_cd_time = Time.time;
+		cd_time_limit = 3f;
+		cd_start_time = Time.time;
+		cd_time = Time.time;
 		is_attacking_triggered = false;
 
 		// game controller
+		game = GameObject.Find ("Root").GetComponent <GameController> ();
 		is_notified = false;
 	}
 
@@ -145,19 +154,19 @@ public class PlayerController : MonoBehaviour {
 		}
 		if (is_attacking_last_frame)
 		{
-			attack_cd_start_time = Time.time;
+			cd_start_time = Time.time;
 		}
 		attack_time = Time.time - attack_start_time;
 		if (is_attacking && attack_time >= attack_time_limit)
 		{
 			is_attacking = false;
 		}
-		attack_cd_time = Time.time - attack_cd_start_time;
-		if (is_attacking && is_attacking_triggered && !animator.GetBool ("Attack") && attack_cd_time <= attack_cd_time_limit)
+		cd_time = Time.time - cd_start_time;
+		if (is_attacking && is_attacking_triggered && !animator.GetBool ("Attack") && cd_time <= cd_time_limit)
 		{
 			is_attacking = false;
 		}
-		if (is_attacking_triggered && !animator.GetBool ("Attack") && attack_cd_time > attack_cd_time_limit)
+		if (is_attacking_triggered && !animator.GetBool ("Attack") && cd_time > cd_time_limit)
 		{
 			is_attacking_triggered = false;
 		}
@@ -191,6 +200,9 @@ public class PlayerController : MonoBehaviour {
 		{
 			up_speed = max_up_speed;
 		}
+
+		attack_timer.position = transform.position + Vector3.up * timer_position_offset;
+		cd_timer.position = transform.position + Vector3.up * timer_position_offset;
 	}
 
 	void UpdateAnimation ()
@@ -203,13 +215,102 @@ public class PlayerController : MonoBehaviour {
 			{
 				is_attacking_triggered = true;
 				animator.SetBool ("Attack", true);
+				// timer_animator.SetBool ("AttackCountDown", true);
+			}
+
+			// generate attack timer
+			if (attack_time < attack_time_limit / 3) // 3
+			{
+				if (attack_timer.childCount <= 0)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						Vector3 position = attack_timer.position;
+						position.x += (i-1) * 0.2f;
+						position.y += (i%2-1) * 0.06f;
+						Instantiate (attack_count_down, position, attack_timer.rotation, attack_timer);
+					}
+				}
+			}
+			else if (attack_time < attack_time_limit / 3 * 2) // 2
+			{
+				if (attack_timer.childCount >= 3)
+				{
+					Destroy (attack_timer.GetChild (2).gameObject);
+				}
+			}
+			else // 1
+			{
+				if (attack_timer.childCount >= 2)
+				{
+					Destroy (attack_timer.GetChild (1).gameObject);
+				}
 			}
 		}
-		else
+		else // !is_attacking
 		{
 			if (animator.GetBool ("Attack"))
 			{
+				// end attack timer
 				animator.SetBool ("Attack", false);
+				// timer_animator.SetBool ("AttackCountDown", false);
+				// start cd timer
+				// timer_animator.SetTrigger ("CDCountDown");
+
+				// generate cd timer
+				if (cd_timer.childCount <= 0)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						Vector3 position = cd_timer.position;
+						position.x += (i-1) * 0.2f;
+						position.y += (i%2-1) * 0.06f;
+						Instantiate (cd_count_down, position, cd_timer.rotation, cd_timer);
+					}
+				}
+			}
+
+			// cd timer
+			if (cd_time < cd_time_limit / 3) // 3
+			{
+				//
+			}
+			else if (cd_time < cd_time_limit / 3 * 2) // 2
+			{
+				if (cd_timer.childCount >= 3)
+				{
+					Destroy (cd_timer.GetChild (2).gameObject);
+				}
+			}
+			else if (cd_time < cd_time_limit) // 1
+			{
+				if (cd_timer.childCount >= 2)
+				{
+					Destroy (cd_timer.GetChild (1).gameObject);
+				}
+			}
+			else // 0
+			{
+				foreach (Transform child in cd_timer)
+				{
+					Destroy (child.gameObject);
+				}
+			}
+
+			if (attack_timer.childCount > 0)
+			{
+				foreach (Transform child in attack_timer)
+				{
+					Destroy (child.gameObject);
+				}
+			}
+		}
+
+		if (cd_time > cd_time_limit)
+		{
+			foreach (Transform child in cd_timer)
+			{
+				Destroy (child.gameObject);
 			}
 		}
 
@@ -217,6 +318,8 @@ public class PlayerController : MonoBehaviour {
 		{
 			animator.SetTrigger ("Killed");
 			is_dead = true;
+			attack_timer.gameObject.SetActive (false);
+			cd_timer.gameObject.SetActive (false);
 		}
 	}
 
@@ -263,6 +366,7 @@ public class PlayerController : MonoBehaviour {
 		{
 			if (is_attacking)
 			{
+				other.gameObject.tag = "Finish";
 				other.gameObject.GetComponent <EnemyController> ().KilledByPlayer ();
 			}
 			else
@@ -286,5 +390,7 @@ public class PlayerController : MonoBehaviour {
 		transform.position = initial_position;
 		position_y = transform.position.y;
 		position_y_last_frame = transform.position.y;
+		attack_timer.gameObject.SetActive (true);
+		cd_timer.gameObject.SetActive (true);
 	}
 }

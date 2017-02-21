@@ -8,19 +8,25 @@ public class EnemyController : MonoBehaviour {
 	private float speed;
 	private float destory_delay;
 	private float dead_destroy_delay;
+	private bool is_missed;
 	private Animator animator;
 	private bool is_dead;
+	private GameController game;
 
 	// Use this for initialization
 	void Start () {
 		left_boundary = -4f;
-		speed = Random.Range (2f, 2.5f);
+		speed = Random.Range (0.8f, 1.2f);
 		destory_delay = 1f;
-		dead_destroy_delay = 0.5f;
+		dead_destroy_delay = 1.5f;
+		is_missed = false;
 
 		// animation
 		animator = GetComponent <Animator> ();
 		is_dead = false;
+
+		// game controller
+		game = GameObject.Find ("Root").GetComponent <GameController> ();
 	}
 
 	// Update is called once per frame
@@ -33,7 +39,12 @@ public class EnemyController : MonoBehaviour {
 			}
 			else
 			{
-				Destroy (gameObject, destory_delay);
+				if (!is_missed)
+				{
+					is_missed = true;
+					game.AddMisses ();
+					Destroy (gameObject, destory_delay);
+				}
 			}
 		}
 	}
@@ -57,6 +68,7 @@ public class EnemyController : MonoBehaviour {
 		if (!is_dead)
 		{
 			is_dead = true;
+			game.AddKills ();
 			animator.SetTrigger ("Killed");
 			Destroy (gameObject, dead_destroy_delay);
 		}
