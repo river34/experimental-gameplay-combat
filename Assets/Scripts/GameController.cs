@@ -80,7 +80,13 @@ public class GameController : MonoBehaviour {
 	public GameObject UI_option;
 
 	// difficulty level
-	public int difficulty_level;
+	private int difficulty_level;
+
+	// sound manager
+	private SoundManager sound_manager;
+	private bool is_opening_played;
+	private bool is_gaming_played;
+	private bool is_ending_played;
 
 	// Use this for initialization
 	void Start () {
@@ -95,7 +101,7 @@ public class GameController : MonoBehaviour {
 		// game control
 		title_time = 3f;
 		is_title_finished = false;
-		option_time = 3f;
+		option_time = 5f;
 		is_option_finished = false;
 		game_start_time = Time.time;
 		hidden = transform.Find ("Hidden").gameObject;
@@ -166,10 +172,22 @@ public class GameController : MonoBehaviour {
 
 		// difficulty level
 		difficulty_level = 0;
+
+		// sound_manager
+		sound_manager = transform.Find ("SoundManager").gameObject.GetComponent <SoundManager> ();
+		is_opening_played = false;
+		is_gaming_played = false;
+		is_ending_played = false;
 	}
 
 	// Update is called once per frame
 	void Update () {
+		if (!is_title_finished && !is_opening_played)
+		{
+			is_opening_played = true;
+			sound_manager.PlayMusic ("opening");
+		}
+
 		if (!is_end && is_title_finished && !is_option_finished)
 		{
 			if (Input.GetKey ("s"))
@@ -238,6 +256,21 @@ public class GameController : MonoBehaviour {
 				}
 			}
 		}
+
+		if (!is_end && is_tutorial_finished && !is_gaming_played)
+		{
+			is_gaming_played = true;
+			sound_manager.PlayMusic ("gaming");
+			is_ending_played = false;
+		}
+
+		if (is_end && !is_ending_played)
+		{
+			is_ending_played = true;
+			sound_manager.PlayMusic ("ending");
+			is_gaming_played = false;
+		}
+
 		UpdateUI ();
 	}
 
@@ -361,7 +394,10 @@ public class GameController : MonoBehaviour {
 		UI_kill_1.GetComponent <Text> ().text = "Feathery: " + kills;
 
 		player1.Init ();
-		player2.Init ();
+		if (is_multiplayer)
+		{
+			player2.Init ();
+		}
 	}
 
 	public void End ()
@@ -600,5 +636,15 @@ public class GameController : MonoBehaviour {
 			new_tutorial_text.GetComponent <TextMesh> ().color = new Color (1f, 1f, 1f, 0);
 			new_tutorial_text.GetComponent <TextMesh> ().text = tutorial_string;
 		}
+	}
+
+	public void PlaySawSound ()
+	{
+		sound_manager.PlaySound ("saw");
+	}
+
+	public void PlayJumpSound ()
+	{
+		sound_manager.PlaySound ("jump");
 	}
 }

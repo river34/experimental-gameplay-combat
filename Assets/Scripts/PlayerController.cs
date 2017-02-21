@@ -216,6 +216,11 @@ public class PlayerController : MonoBehaviour {
 		{
 			is_attacking_triggered = false;
 		}
+
+		if (is_up && !is_up_last_frame)
+		{
+			game.PlayJumpSound ();
+		}
 	}
 
 	void UpdateMovement ()
@@ -421,6 +426,7 @@ public class PlayerController : MonoBehaviour {
 				{
 					game.AddKills1 ();
 				}
+				game.PlaySawSound ();
 			}
 			else
 			{
