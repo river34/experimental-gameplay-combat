@@ -8,4 +8,4 @@ Engineer: River Liu
 
 Artist: River Liu
 
-Playtesters: Xuesong Liang, Emre Findik
+Playtesters: Xuesong Liang, Emre Findik, Sunil Nayak
