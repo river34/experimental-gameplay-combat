@@ -12,3 +12,5 @@ Temp/
 ProjectSettings/
 *.meta
 
+## Build
+Build/
