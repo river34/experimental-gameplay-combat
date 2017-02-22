@@ -28,8 +28,9 @@ public class GameController : MonoBehaviour {
 	private float option_time;
 	private bool is_option_finished;
 	private float game_start_time;
-	public bool is_end;
-	public bool is_multiplayer;
+	private bool is_end;
+	private bool is_multiplayer;
+	private bool is_start;
 
 	// curtain
 	private Transform curtain;
@@ -103,7 +104,6 @@ public class GameController : MonoBehaviour {
 		is_title_finished = false;
 		option_time = 5f;
 		is_option_finished = false;
-		game_start_time = Time.time;
 		hidden = transform.Find ("Hidden").gameObject;
 		if (hidden.activeSelf)
 		{
@@ -111,6 +111,7 @@ public class GameController : MonoBehaviour {
 		}
 		is_end = false;
 		is_multiplayer = false;
+		is_start = false;
 
 		// curtain
 		curtain = transform.Find ("Curtain");
@@ -182,12 +183,40 @@ public class GameController : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+		// press any key to start
+		// start timer
+		if (!is_start)
+		{
+			ShowTitle ();
+			if (Input.anyKey)
+			{
+				is_start = true;
+				game_start_time = Time.time;
+			}
+		}
+
+		if (!is_start)
+		{
+			return;
+		}
+
+		// hide title
+		if (!is_title_finished && Time.time - game_start_time >= title_time)
+		{
+			is_title_finished = true;
+			HideTitle ();
+		}
+
+		// play opening music
 		if (!is_title_finished && !is_opening_played)
 		{
 			is_opening_played = true;
 			sound_manager.PlayMusic ("opening");
+			sound_manager.PlaySound ("wind");
 		}
 
+		// show options
+		// choose single-player mode or multi-player mode
 		if (!is_end && is_title_finished && !is_option_finished)
 		{
 			if (Input.GetKey ("s"))
@@ -207,12 +236,14 @@ public class GameController : MonoBehaviour {
 			}
 		}
 
+		// set tutorial before it starts
 		if (!is_end && is_title_finished && is_option_finished && !is_tutorial_set)
 		{
 			is_tutorial_set = true;
 			SetTutorial ();
 		}
 
+		// be able to skip tutorial
 		if (!is_end && is_title_finished && is_option_finished && is_tutorial_set && !is_tutorial_finished)
 		{
 			if (Input.GetKey ("space"))
@@ -221,6 +252,7 @@ public class GameController : MonoBehaviour {
 			}
 		}
 
+		// show tutorial
 		if (!is_end && is_title_finished && is_option_finished)
 		{
 			if (curtain.position.y < curtain_highest_position_y)
@@ -249,14 +281,14 @@ public class GameController : MonoBehaviour {
 
 			if (curtain.position.y == curtain_lowest_position_y)
 			{
-				if (Input.anyKey)
+				if (Input.GetKey ("space"))
 				{
-					print ("anyKey");
 					Init ();  // restart game
 				}
 			}
 		}
 
+		// game on
 		if (!is_end && is_tutorial_finished && !is_gaming_played)
 		{
 			is_gaming_played = true;
@@ -264,6 +296,14 @@ public class GameController : MonoBehaviour {
 			is_ending_played = false;
 		}
 
+		// game ends
+		if (is_end)
+		{
+			HideUI ();
+			ShowHighest ();
+		}
+
+		// play ending music
 		if (is_end && !is_ending_played)
 		{
 			is_ending_played = true;
@@ -271,7 +311,21 @@ public class GameController : MonoBehaviour {
 			is_gaming_played = false;
 		}
 
-		UpdateUI ();
+		if (is_title_finished && !is_option_finished && Time.time - game_start_time - title_time < option_time)
+		{
+			ShowOption ();
+		}
+		else if (is_title_finished && !is_option_finished)
+		{
+			is_option_finished = true;
+			HideOption ();
+		}
+
+		if (!is_end && is_tutorial_finished)
+		{
+			ShowUI ();
+			HideHighest ();
+		}
 	}
 
 	void CheckControls ()
@@ -376,7 +430,7 @@ public class GameController : MonoBehaviour {
 		is_end = false;
 		danger.position = new Vector3 (danger_original_position_x, danger.position.y, danger.position.z);
 		danger_particle = danger.GetComponent <ParticleSystem> ();
-		original_lifetime = danger_particle.startLifetime;
+		danger_particle.startLifetime = original_lifetime;
 		kills = 0;
 		kills_0 = 0;
 		kills_1 = 0;
@@ -479,41 +533,6 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	public void UpdateUI ()
-	{
-		if (!is_title_finished && Time.time - game_start_time < title_time)
-		{
-			ShowTitle ();
-		}
-		else if (!is_title_finished)
-		{
-			is_title_finished = true;
-			HideTitle ();
-		}
-
-		if (is_title_finished && !is_option_finished && Time.time - game_start_time - title_time < option_time)
-		{
-			ShowOption ();
-		}
-		else if (is_title_finished && !is_option_finished)
-		{
-			is_option_finished = true;
-			HideOption ();
-		}
-
-		if (!is_end && is_tutorial_finished)
-		{
-			ShowUI ();
-			HideHighest ();
-		}
-
-		if (is_end)
-		{
-			HideUI ();
-			ShowHighest ();
-		}
-	}
-
 	void HideUI ()
 	{
 		if (UI_kill.activeSelf)
@@ -609,23 +628,27 @@ public class GameController : MonoBehaviour {
 	{
 		if (is_multiplayer)
 		{
-			tutorial_strings = new string[7];
+			tutorial_strings = new string[9];
 			tutorial_strings[0] = "Once upon a time, there live Fluffy and Feathery";
 			tutorial_strings[1] = "They love to roll around and never get tired";
 			tutorial_strings[2] = "Use WASD to control Fluffy";
 			tutorial_strings[3] = "Use Arrows to control Feathery";
 			tutorial_strings[4] = "Press W or Up to jump";
 			tutorial_strings[5] = "Press D or Right to turn into a saw";
-			tutorial_strings[6] = "One day, there come the Evil Spirits ...";
+			tutorial_strings[6] = "One day, there come the Ghosts ...";
+			tutorial_strings[7] = "Fluffy and Feathery! Come to defeat them!";
+			tutorial_strings[8] = "Save the forest from great danger";
 		}
 		else
 		{
-			tutorial_strings = new string[5];
+			tutorial_strings = new string[7];
 			tutorial_strings[0] = "Once upon a time, there lives Fluffy";
 			tutorial_strings[1] = "It loves to roll around and never gets tired";
 			tutorial_strings[2] = "Press W or Up to jump";
 			tutorial_strings[3] = "Press D or Right to turn into a saw";
-			tutorial_strings[4] = "One day, there come the Evil Spirits ...";
+			tutorial_strings[4] = "One day, there come the Ghosts ...";
+			tutorial_strings[5] = "Fluffy! Come to defeat them!";
+			tutorial_strings[6] = "Save the forest from great danger";
 		}
 
 		foreach (string tutorial_string in tutorial_strings)

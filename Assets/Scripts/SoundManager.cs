@@ -9,6 +9,7 @@ public class SoundManager : MonoBehaviour {
 	private AudioSource ending;
 	private AudioSource saw;
 	private AudioSource jump;
+	private AudioSource wind;
 
 	// Use this for initialization
 	void Start () {
@@ -17,6 +18,7 @@ public class SoundManager : MonoBehaviour {
 		ending = transform.Find ("Ending").GetComponent <AudioSource> ();
 		saw = transform.Find ("Saw").GetComponent <AudioSource> ();
 		jump = transform.Find ("Jump").GetComponent <AudioSource> ();
+		wind = transform.Find ("Wind").GetComponent <AudioSource> ();
 	}
 
 	public void PlayMusic (string name)
@@ -52,6 +54,13 @@ public class SoundManager : MonoBehaviour {
 			if (!jump.isPlaying)
 			{
 				jump.Play ();
+			}
+		}
+		if (name == "wind")
+		{
+			if (!wind.isPlaying)
+			{
+				wind.Play ();
 			}
 		}
 	}
