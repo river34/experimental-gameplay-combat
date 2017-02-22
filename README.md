@@ -1,6 +1,8 @@
 # Fluffy Combat
 
 
+<img src="/Assets/Screenshots/Screen Shot 04.png">
+
 
 <img src="/Assets/Screenshots/Screen Shot 03.png">
 
