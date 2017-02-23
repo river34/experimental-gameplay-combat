@@ -5,7 +5,6 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour {
 
 	private float left_boundary;
-	private float base_speed;
 	private float speed;
 	private float destory_delay;
 	private float dead_destroy_delay;
@@ -20,9 +19,8 @@ public class EnemyController : MonoBehaviour {
 		game = GameObject.Find ("Root").GetComponent <GameController> ();
 
 		left_boundary = -4f;
-		base_speed = 0.2f;
-		speed = Random.Range (0.8f, 1.2f);
-		speed += game.GetDifficultyLevel () * base_speed;
+		speed = Mathf.Min (2f, 1 + 0.2f * game.GetDifficultyLevel ());
+		speed += Random.Range (-0.2f, 0.2f); // add a random factor
 		destory_delay = 1f;
 		dead_destroy_delay = 0.6f;
 		is_missed = false;

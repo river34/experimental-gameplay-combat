@@ -83,10 +83,10 @@ public class PlayerController : MonoBehaviour {
 		timer_position_offset = 0.4f;
 
 		// cd time
-		attack_time_limit = 3f + Mathf.Min (5 - game.GetDifficultyLevel (), 0);
+		attack_time_limit = Mathf.Max (2f, 3f - 0.2f * game.GetDifficultyLevel ());
 		attack_start_time = Time.time;
 		attack_time = Time.time;
-		cd_time_limit = 1f + Mathf.Min (game.GetDifficultyLevel (), 2);
+		cd_time_limit = Mathf.Min (1.5f, 1f + 0.1f * game.GetDifficultyLevel ());
 		cd_start_time = Time.time;
 		cd_time = Time.time;
 		is_attacking_triggered = false;
@@ -457,5 +457,11 @@ public class PlayerController : MonoBehaviour {
 	{
 		is_wasd = _is_wasd;
 		is_arrows = _is_arrows;
+	}
+
+	public void ChangeDifficultyLevel (int difficulty_level)
+	{
+		attack_time_limit = Mathf.Max (2f, 3f - 0.2f * game.GetDifficultyLevel ());
+		cd_time_limit = Mathf.Min (1.5f, 1f + 0.1f * game.GetDifficultyLevel ());
 	}
 }

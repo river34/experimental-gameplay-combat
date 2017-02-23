@@ -17,7 +17,7 @@ public class GameController : MonoBehaviour {
 	private Transform enemies;
 	private GameObject enemycard;
 	private List <Transform> enemies_in_card;
-	private float enemycard_renew_time;
+	public float enemycard_renew_time;
 	private float enemycard_start_time;
 	private float enemycard_destory_delay;
 
@@ -63,14 +63,16 @@ public class GameController : MonoBehaviour {
 	public GameObject tutorial_text;
 
 	// game statistics
-	private int kills;
+	public int kills;
 	private int kills_0;
 	private int kills_1;
-	private int misses;
+	public int misses;
 	private float distance;
 	private int max_misses;
 	private float distance_speed;
 	private int highest;
+	private int kill_base_level;
+	public int difficulty_level;
 
 	// UI
 	public GameObject UI_kill;
@@ -80,9 +82,6 @@ public class GameController : MonoBehaviour {
 	public GameObject UI_title;
 	public GameObject UI_option;
 
-	// difficulty level
-	private int difficulty_level;
-
 	// sound manager
 	private SoundManager sound_manager;
 	private bool is_opening_played;
@@ -91,11 +90,14 @@ public class GameController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// difficulty level
+		difficulty_level = 0;
+
 		// enemy
 		enemies = transform.Find ("Enemies");
 		enemy_start_x = 10f;
 		is_enemy_start = false;
-		enemycard_renew_time = 8f;
+		enemycard_renew_time = Mathf.Max (6f, 8f - 0.4f * difficulty_level);
 		enemycard_start_time = Time.time;
 		enemycard_destory_delay = 20f;
 
@@ -133,10 +135,11 @@ public class GameController : MonoBehaviour {
 		kills_0 = 0;
 		kills_1 = 0;
 		misses = 0;
-		max_misses = 50;
+		max_misses = 40;
 		distance = 0;
 		distance_speed = 2f;
 		highest = 0;
+		kill_base_level = 10;
 
 		// tutorials
 		skip_tutorial = false;
@@ -170,9 +173,6 @@ public class GameController : MonoBehaviour {
 		HideUI ();
 		HideHighest ();
 		HideOption ();
-
-		// difficulty level
-		difficulty_level = 0;
 
 		// sound_manager
 		sound_manager = transform.Find ("SoundManager").gameObject.GetComponent <SoundManager> ();
@@ -265,7 +265,7 @@ public class GameController : MonoBehaviour {
 			}
 			CheckControls ();
 			UpdateTutorial ();
-			UpdateStatue ();
+			UpdateGame ();
 			UpdateEnemies ();
 		}
 		else if (is_end && is_title_finished && is_option_finished) // is_end
@@ -334,32 +334,32 @@ public class GameController : MonoBehaviour {
 		{
 			if (Input.GetKey ("0"))
 			{
-				difficulty_level = 0;
+				ChangeDifficultyLevel (0);
 			}
 			if (Input.GetKey ("1"))
 			{
-				difficulty_level = 1;
+				ChangeDifficultyLevel (1);
 			}
 			if (Input.GetKey ("2"))
 			{
-				difficulty_level = 2;
+				ChangeDifficultyLevel (2);
 			}
 			if (Input.GetKey ("3"))
 			{
-				difficulty_level = 3;
+				ChangeDifficultyLevel (3);
 			}
 			if (Input.GetKey ("4"))
 			{
-				difficulty_level = 4;
+				ChangeDifficultyLevel (4);
 			}
 			if (Input.GetKey ("5"))
 			{
-				difficulty_level = 5;
+				ChangeDifficultyLevel (5);
 			}
 		}
 	}
 
-	void UpdateStatue ()
+	void UpdateGame ()
 	{
 		if (!is_enemy_start && is_tutorial_finished)
 		{
@@ -385,6 +385,12 @@ public class GameController : MonoBehaviour {
 		if (misses > max_misses)
 		{
 			End ();
+		}
+
+		int temp_difficulty_level = (int) Mathf.Floor (kills / kill_base_level);
+		if (difficulty_level < temp_difficulty_level)
+		{
+			ChangeDifficultyLevel (temp_difficulty_level);
 		}
 	}
 
@@ -669,5 +675,13 @@ public class GameController : MonoBehaviour {
 	public void PlayJumpSound ()
 	{
 		sound_manager.PlaySound ("jump");
+	}
+
+	void ChangeDifficultyLevel (int level)
+	{
+		difficulty_level = level;
+		player1.ChangeDifficultyLevel (difficulty_level);
+		player2.ChangeDifficultyLevel (difficulty_level);
+		enemycard_renew_time = Mathf.Max (6f, 8f - 0.4f * difficulty_level);
 	}
 }
