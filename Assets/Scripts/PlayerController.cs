@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour {
 	private float gravity;
 	public float right_speed;
 	private float max_y;
+	private float min_y;
+	private float max_x;
 	private float min_x;
 	private Vector3 initial_position;
 
@@ -67,6 +69,8 @@ public class PlayerController : MonoBehaviour {
 		gravity = 16f;
 		right_speed = 0f;
 		max_y = 1.2f;
+		min_y = -1.5f;
+		max_x = 3f;
 		min_x = -2f;
 		initial_position = new Vector3 (min_x, max_y, -2f);
 		transform.position = initial_position;
@@ -252,6 +256,24 @@ public class PlayerController : MonoBehaviour {
 
 		attack_timer.position = transform.position + Vector3.up * timer_position_offset;
 		cd_timer.position = transform.position + Vector3.up * timer_position_offset;
+
+		// fix the problem that player disppears sometime by limiting the position
+		if (transform.position.x > max_x + 2f)
+		{
+			transform.position = new Vector3 (max_x, transform.position.y, transform.position.z);
+		}
+		if (transform.position.x < min_x - 2f)
+		{
+			transform.position = new Vector3 (min_x, transform.position.y, transform.position.z);
+		}
+		if (transform.position.y > max_y + 2f)
+		{
+			transform.position = new Vector3 (transform.position.x, max_y, transform.position.z);
+		}
+		if (transform.position.x < min_y - 2f)
+		{
+			transform.position = new Vector3 (transform.position.x, min_y, transform.position.z);
+		}
 	}
 
 	void UpdateAnimation ()
