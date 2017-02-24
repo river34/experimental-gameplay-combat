@@ -16,7 +16,7 @@ public class EnemyController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// game controller
-		game = GameObject.Find ("Root").GetComponent <GameController> ();
+		game = GameObject.FindGameObjectWithTag ("GameController").GetComponent <GameController> ();
 
 		left_boundary = -4f;
 		speed = Mathf.Min (2f, 1 + 0.2f * game.GetDifficultyLevel ());

@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// game controller
-		game = GameObject.Find ("Root").GetComponent <GameController> ();
+		game = GameObject.FindGameObjectWithTag ("GameController").GetComponent <GameController> ();
 		is_wasd = true;
 		is_arrows = true;
 
@@ -177,6 +177,15 @@ public class PlayerController : MonoBehaviour {
 				is_attacking = false;
 			}
 		}
+
+		if (Input.GetKey ("p")) // debug
+		{
+			game.ShowDebug (gameObject.name, string.Format ("x: {0}, y: {1}, z: {2}", transform.position.x, transform.position.y, transform.position.z));
+		}
+		else
+		{
+			game.HideDebug ();
+		}
 	}
 
 	void UpdateStatus ()
@@ -270,7 +279,7 @@ public class PlayerController : MonoBehaviour {
 		{
 			transform.position = new Vector3 (transform.position.x, max_y, transform.position.z);
 		}
-		if (transform.position.x < min_y - 2f)
+		if (transform.position.y < min_y - 2f)
 		{
 			transform.position = new Vector3 (transform.position.x, min_y, transform.position.z);
 		}

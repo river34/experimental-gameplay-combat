@@ -81,6 +81,7 @@ public class GameController : MonoBehaviour {
 	public GameObject UI_highest;
 	public GameObject UI_title;
 	public GameObject UI_option;
+	public GameObject UI_debug;
 
 	// sound manager
 	private SoundManager sound_manager;
@@ -173,6 +174,7 @@ public class GameController : MonoBehaviour {
 		HideUI ();
 		HideHighest ();
 		HideOption ();
+		HideDebug ();
 
 		// sound_manager
 		sound_manager = transform.Find ("SoundManager").gameObject.GetComponent <SoundManager> ();
@@ -622,6 +624,27 @@ public class GameController : MonoBehaviour {
 		if (!UI_option.activeSelf)
 		{
 			UI_option.SetActive (true);
+		}
+	}
+
+	public void HideDebug ()
+	{
+		if (UI_debug.activeSelf)
+		{
+			UI_debug.SetActive (false);
+		}
+	}
+
+	public void ShowDebug (string name, string debug)
+	{
+		if (!UI_debug.activeSelf)
+		{
+			UI_debug.SetActive (true);
+		}
+		Transform child = UI_debug.transform.Find ("Debug_" + name);
+		if (child != null)
+		{
+			child.gameObject.GetComponent <Text>().text = debug;
 		}
 	}
 
